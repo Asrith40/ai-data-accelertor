@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Data Solutions Accelerator</title>
+<style>
+  :root {
+    --navy: #21295C;
+    --deepblue: #065A82;
+    --teal: #1C7293;
+    --mint: #2FBF9F;
+    --offwhite: #F7F9FB;
+    --darktext: #1A1A1A;
+    --muted: #6B7280;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    background: var(--offwhite);
+    color: var(--darktext);
+  }
+  header {
+    background: var(--navy);
+    color: white;
+    padding: 32px 24px;
+    text-align: center;
+  }
+  header h1 { margin: 0 0 8px 0; font-size: 26px; }
+  header p { margin: 0; color: #CADCFC; font-size: 14px; }
+  main {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+  }
+  label {
+    display: block;
+    font-weight: 600;
+    margin: 20px 0 6px;
+    color: var(--navy);
+  }
+  textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dfe3e8;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 13px;
+    resize: vertical;
+  }
+  input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #dfe3e8;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  button {
+    margin-top: 24px;
+    background: var(--mint);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:disabled { background: #b7bec6; cursor: not-allowed; }
+  #progress {
+    margin-top: 28px;
+    display: none;
+  }
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .step.done { color: var(--darktext); }
+  .step .dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #dfe3e8;
+    flex-shrink: 0;
+  }
+  .step.done .dot { background: var(--mint); }
+  .step.running .dot { background: var(--teal); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  #result {
+    margin-top: 32px;
+    display: none;
+    background: white;
+    border: 1px solid #e3e8ee;
+    border-radius: 10px;
+    padding: 24px;
+  }
+  #result pre {
+    background: #f4f6f8;
+    padding: 14px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 13px;
+  }
+  #error {
+    margin-top: 20px;
+    background: #fdecec;
+    border: 1px solid #f3c6c6;
+    color: #7a2020;
+    padding: 14px;
+    border-radius: 8px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>AI-Powered Data Solutions Accelerator</h1>
+  <p>Enter a business requirement and a schema — 6 agents run automatically and return a working SQL query + dashboard template.</p>
+</header>
+
+<main>
+  {% if access_code_required %}
+  <label for="access_code">Access Code</label>
+  <input type="text" id="access_code" placeholder="Enter access code">
+  {% endif %}
+
+  <label for="requirement">Business Requirement</label>
+  <textarea id="requirement" rows="5" placeholder="e.g. We need a reporting pipeline for our ad campaign performance..."></textarea>
+
+  <label for="schema">Database Schema</label>
+  <textarea id="schema" rows="8" placeholder="e.g. Table: campaigns&#10;- campaign_id (STRING, PK)&#10;..."></textarea>
+
+  <button id="generateBtn" onclick="runPipeline()">Generate</button>
+
+  <div id="progress"></div>
+  <div id="error"></div>
+  <div id="result"></div>
+</main>
+
+<script>
+const AGENT_LABELS = [
+  "Requirements & Schema Analyzer",
+  "Architecture & KPI Framework Designer",
+  "Dashboard Designer",
+  "Query Generator",
+  "Critic / Validator",
+  "Documentation Generator"
+];
+
+function renderProgress(activeIndex, doneUpTo) {
+  const el = document.getElementById("progress");
+  el.style.display = "block";
+  el.innerHTML = AGENT_LABELS.map((label, i) => {
+    let cls = "step";
+    if (i < doneUpTo) cls += " done";
+    else if (i === activeIndex) cls += " running";
+    return `<div class="${cls}"><div class="dot"></div>Agent ${i+1}: ${label}</div>`;
+  }).join("");
+}
+
+async function runPipeline() {
+  const requirement = document.getElementById("requirement").value.trim();
+  const schema = document.getElementById("schema").value.trim();
+  const accessCodeEl = document.getElementById("access_code");
+  const access_code = accessCodeEl ? accessCodeEl.value.trim() : undefined;
+
+  const errorEl = document.getElementById("error");
+  const resultEl = document.getElementById("result");
+  errorEl.style.display = "none";
+  resultEl.style.display = "none";
+
+  if (!requirement || !schema) {
+    errorEl.textContent = "Please fill in both the business requirement and the schema.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  const btn = document.getElementById("generateBtn");
+  btn.disabled = true;
+  btn.textContent = "Running...";
+
+  // Simulate step-by-step progress visually while the single request is in flight
+  // (the backend runs all 6 agents in one call; this just gives visual feedback)
+  let fakeStep = 0;
+  renderProgress(0, 0);
+  const progressTimer = setInterval(() => {
+    fakeStep = Math.min(fakeStep + 1, 5);
+    renderProgress(fakeStep, fakeStep);
+  }, 4000);
+
+  try {
+    const response = await fetch("/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requirement, schema, access_code })
+    });
+    const data = await response.json();
+    clearInterval(progressTimer);
+
+    if (!response.ok) {
+      errorEl.textContent = data.error || "Something went wrong.";
+      errorEl.style.display = "block";
+      document.getElementById("progress").style.display = "none";
+    } else {
+      renderProgress(5, 6);
+      resultEl.style.display = "block";
+      resultEl.innerHTML = `<h2>Result</h2><pre>${escapeHtml(data.deliverable_markdown)}</pre>`;
+    }
+  } catch (e) {
+    clearInterval(progressTimer);
+    errorEl.textContent = "Network error: " + e.message;
+    errorEl.style.display = "block";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Generate";
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+
+</body>
+</html>
