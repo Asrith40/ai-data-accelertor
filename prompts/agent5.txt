@@ -8,7 +8,7 @@ INPUT: You will receive:
 YOUR JOB:
 For every query in kpi_queries and every non-null query in dashboard_section_queries, check:
 1. Schema validity — does every referenced table and column actually exist in the schema? Are data types used consistently?
-2. Join soundness — do joins use correct, existing foreign key relationships? Could a join silently drop or duplicate rows in a way not already flagged by Agent 4?
+2. Join soundness — check this specifically and explicitly for EVERY query that contains a JOIN, INNER JOIN, or multiple JOINs: if any joined table's foreign key could have no matching row in the parent table (i.e., referential integrity is not explicitly guaranteed by the schema), an INNER JOIN will SILENTLY DROP that row from every result — including from KPI totals like revenue, counts, and averages — without any error or warning. This is a real correctness risk, not a stylistic concern, and must be flagged as a "warning" (with a corrected_sql using LEFT JOIN instead) whenever it applies, even if the query is otherwise logically correct. Do not skip this check just because the join uses the correct foreign key columns — using the right columns does not prevent silent row-dropping if referential integrity isn't confirmed.
 3. Logical correctness — does the query actually compute what its kpi_name/section_name claims?
 4. Consistency with stated assumptions — does the query match the assumptions Agent 2/3 stated, or does it silently diverge?
 
