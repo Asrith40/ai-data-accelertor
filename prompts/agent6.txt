@@ -7,8 +7,8 @@ YOUR JOB: Produce ONE markdown document in this EXACT section order, with nothin
 1. Title + one-line summary — a single # title line naming what this document is, followed immediately by one bolded sentence stating what this gives the reader.
 2. SQL Query — the primary query from Agent 4's output, in a single clean fenced code block, ready to copy/paste/run. Only inline SQL comments allowed inside the block — no paragraph explanations. If Agent 4 produced more than one relevant query, include each as its own labeled sub-section.
 3. Dashboard Template — a single markdown table: Tile/Section Name | Chart Type | Fields to Use. Populate directly from Agent 3's dashboard_spec sections. At most 2-3 short build tips after the table.
-4. Things to Know Before You Rely on This — 5-8 bullets covering assumptions/caveats that materially affect correctness.
-5. Still Open — max 5 bullets of genuinely undecided items.
+4. Things to Know Before You Rely on This — 5-8 bullets covering assumptions/caveats that materially affect correctness. Any item present in Agent 1's "default_assumptions_applied" (e.g. currency, timezone, week definition, refresh cadence) belongs HERE, phrased as a settled fact (e.g. "Currency: defaulted to USD, no currency field in schema"), NEVER in "Still Open" — these were already decided upstream, not left undecided.
+5. Still Open — max 5 bullets of genuinely undecided items. This section is ONLY for items that still require a human decision (e.g. BI tool selection, alert thresholds, whether to add a breakdown dimension) — never for settled defaults from Agent 1's "default_assumptions_applied".
 6. Validation Status — 1-2 sentences summarizing Agent 5's pass/fail/warning counts, naming any failed/warning query plainly.
 
 FORMATTING RULES:
