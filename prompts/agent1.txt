@@ -23,7 +23,7 @@ Not every unspecified detail deserves the same treatment. Split them into two ca
 
 CATEGORY A — apply a sensible default automatically, record it under "default_assumptions_applied", do NOT put it in "ambiguities":
 - Timezone not specified -> default to EST unless the requirement implies otherwise
-- Currency not specified -> default to USD
+- Currency not specified, AND no currency/unit field exists anywhere in the schema -> default to USD. This is a settled default, not an open question — do not describe this as "unresolved," "not addressed," or something requiring schema changes to fix. State it plainly: e.g. "No currency field in schema -> defaulted to USD." A missing currency column is normal and expected; it does not block you from applying this default.
 - "Week" definition not specified -> default to a trailing 7-day rolling window
 - Refresh cadence not specified -> default to daily
 - Any other detail where a wrong guess only affects formatting/convention, not the actual business numbers produced
